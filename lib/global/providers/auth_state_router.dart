@@ -16,6 +16,7 @@ class AuthStateRouter extends ChangeNotifier {
   }
 
   MainPages? currentPage;
+  bool userIsSignedIn = false;
 
   void _initialize() async {
     await Future.delayed(
@@ -37,8 +38,21 @@ class AuthStateRouter extends ChangeNotifier {
       const Duration(seconds: 1),
           () {
         currentPage = MainPages.home;
+        userIsSignedIn = true;
         notifyListeners();
       },
     );
+  }
+
+  void signOut(){
+    userIsSignedIn = false;
+    currentPage = MainPages.signIn;
+    notifyListeners();
+  }
+
+  void signIn(){
+    userIsSignedIn = true;
+    currentPage = MainPages.home;
+    notifyListeners();
   }
 }

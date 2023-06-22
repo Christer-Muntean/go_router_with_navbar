@@ -33,12 +33,6 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       label: 'SHOP',
       initialLocation: '/shop',
     ),
-    MyCustomBottomNavBarItem(
-      icon: Icon(Icons.account_circle_outlined),
-      activeIcon: Icon(Icons.account_circle),
-      label: 'MY',
-      initialLocation: '/account',
-    ),
   ];
 
   @override
@@ -61,9 +55,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
             ? 0
             : widget.location == '/discover'
             ? 1
-            : widget.location == '/shop'
-            ? 2
-            : 3,
+            : 2,
         items: tabs,
       ),
     );
@@ -77,11 +69,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     setState(() {
       _currentIndex = index;
     });
-    if (index == 3) {
-      context.push('/account');
-    } else {
-      router.go(location);
-    }
+    router.go(location);
   }
 }
 

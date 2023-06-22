@@ -8,6 +8,7 @@ import 'package:fablo/main/scaffold_with_navbar.dart';
 import 'package:fablo/onboarding/onboarding_page.dart';
 import 'package:fablo/sign_in/sign_in_page.dart';
 import 'package:fablo/splash/splash_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -17,14 +18,19 @@ void main() {
     providers: [
       ChangeNotifierProvider<AuthStateRouter>(create: (_) => AuthStateRouter()),
     ],
-    child: const MyApp(),
+    child: MyApp(),
   ));
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+// These variables prevents redirect on hot reload when on _navBarRoutes pages.
+bool userAccessAllowed = false;
+String? previousLocation;
+
 List<String> _navBarRoutes = [
+  '/home',
   '/discover',
   '/shop',
   '/account',
@@ -33,22 +39,36 @@ List<String> _navBarRoutes = [
 
 GoRouter router(BuildContext mainContext) {
   String? location = mainContext.watch<AuthStateRouter>().currentPage?.name;
+  bool userIsSignedIn = mainContext.watch<AuthStateRouter>().userIsSignedIn;
   return GoRouter(
     initialLocation: '/',
     navigatorKey: _rootNavigatorKey,
     redirect: (BuildContext context, GoRouterState state) {
       print(state.location);
+
       if (_navBarRoutes.contains(state.location)) {
+        previousLocation = state.location;
         return state.location;
       }
-      return location;
+
+      // Prevent navigation on hot reload
+      if (!userIsSignedIn) {
+        userAccessAllowed = false;
+        previousLocation = null;
+        return location;
+      } else if (userIsSignedIn && !userAccessAllowed) {
+        userAccessAllowed = true;
+        return location;
+      } else if (userIsSignedIn && userAccessAllowed) {
+        return previousLocation;
+      }
     },
     routes: [
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/',
         pageBuilder: (context, state) {
-          return NoTransitionPage(
+          return MaterialPage(
             key: UniqueKey(),
             child: const SplashPage(),
           );
@@ -58,7 +78,7 @@ GoRouter router(BuildContext mainContext) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/on_boarding',
         pageBuilder: (context, state) {
-          return NoTransitionPage(
+          return MaterialPage(
             key: UniqueKey(),
             child: const OnBoardingPage(),
           );
@@ -68,7 +88,7 @@ GoRouter router(BuildContext mainContext) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/sign_in',
         pageBuilder: (context, state) {
-          return NoTransitionPage(
+          return MaterialPage(
             key: UniqueKey(),
             child: const SignInPage(),
           );
@@ -77,7 +97,7 @@ GoRouter router(BuildContext mainContext) {
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         pageBuilder: (context, state, child) {
-          return NoTransitionPage(
+          return MaterialPage(
               child: ScaffoldWithNavBar(
             location: state.location,
             child: child,
@@ -98,7 +118,7 @@ GoRouter router(BuildContext mainContext) {
                 name: 'read_story_page',
                 parentNavigatorKey: _shellNavigatorKey,
                 pageBuilder: (context, state) {
-                  return const NoTransitionPage(
+                  return const MaterialPage(
                     child: ReadStoryPage(),
                   );
                 },
@@ -128,7 +148,7 @@ GoRouter router(BuildContext mainContext) {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/account',
         pageBuilder: (context, state) {
-          return NoTransitionPage(
+          return MaterialPage(
             key: UniqueKey(),
             child: const AccountPage(),
           );
@@ -139,15 +159,18 @@ GoRouter router(BuildContext mainContext) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       routerConfig: router(context),
     );

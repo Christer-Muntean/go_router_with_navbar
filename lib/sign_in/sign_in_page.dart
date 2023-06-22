@@ -1,4 +1,6 @@
+import 'package:fablo/global/providers/auth_state_router.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -10,10 +12,21 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.blue,
       body: Center(
-        child: Text('Sign in page'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Sign in page'),
+            ElevatedButton(
+              onPressed: () {
+                context.read<AuthStateRouter>().signIn();
+              },
+              child: const Text('Sign In'),
+            ),
+          ],
+        ),
       ),
     );
   }

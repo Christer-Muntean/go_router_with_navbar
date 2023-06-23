@@ -17,13 +17,13 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         controller: controller,
         children: const <Widget>[
           Center(
-            child: Text('OnBoarding\nFirst Page'),
+            child: Text('OnBoarding\n\nFirst Page'),
           ),
           Center(
-            child: Text('OnBoarding\nSecond Page'),
+            child: Text('OnBoarding\n\nSecond Page'),
           ),
           Center(
-            child: Text('OnBoarding\nThird Page'),
+            child: Text('OnBoarding\n\nThird Page'),
           ),
         ],
       ),

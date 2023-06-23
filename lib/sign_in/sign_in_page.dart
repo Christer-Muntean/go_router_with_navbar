@@ -1,4 +1,4 @@
-import 'package:fablo/global/providers/auth_state_router.dart';
+import 'package:fablo/global/cubits/auth_state_router.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

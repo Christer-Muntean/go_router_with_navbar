@@ -12,7 +12,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text('Discover'),
+        child: Text('Discover.'),
       ),
     );
   }

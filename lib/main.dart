@@ -1,4 +1,4 @@
-import 'package:fablo/global/providers/auth_state_router.dart';
+import 'package:fablo/global/cubits/auth_state_router.dart';
 import 'package:fablo/main/account_page/account_page.dart';
 import 'package:fablo/main/navbar_pages/discover_page.dart';
 import 'package:fablo/main/navbar_pages/home/home_page.dart';
@@ -8,61 +8,28 @@ import 'package:fablo/main/scaffold_with_navbar.dart';
 import 'package:fablo/onboarding/onboarding_page.dart';
 import 'package:fablo/sign_in/sign_in_page.dart';
 import 'package:fablo/splash/splash_page.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MultiProvider(
+  runApp(MultiBlocProvider(
     providers: [
-      ChangeNotifierProvider<AuthStateRouter>(create: (_) => AuthStateRouter()),
+      BlocProvider<AuthStateRouter>(
+        create: (BuildContext context) => AuthStateRouter(MainPages.onBoarding),
+      ),
     ],
-    child: MyApp(),
+    child: const MyApp(),
   ));
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-// These variables prevents redirect on hot reload when on _navBarRoutes pages.
-bool userAccessAllowed = false;
-String? previousLocation;
-
-List<String> _navBarRoutes = [
-  '/home',
-  '/discover',
-  '/shop',
-  '/account',
-  '/home/read_story',
-];
-
 GoRouter router(BuildContext mainContext) {
-  String? location = mainContext.watch<AuthStateRouter>().currentPage?.name;
-  bool userIsSignedIn = mainContext.watch<AuthStateRouter>().userIsSignedIn;
   return GoRouter(
     initialLocation: '/',
     navigatorKey: _rootNavigatorKey,
-    redirect: (BuildContext context, GoRouterState state) {
-      print(state.location);
-
-      if (_navBarRoutes.contains(state.location)) {
-        previousLocation = state.location;
-        return state.location;
-      }
-
-      // Prevent navigation on hot reload
-      if (!userIsSignedIn) {
-        userAccessAllowed = false;
-        previousLocation = null;
-        return location;
-      } else if (userIsSignedIn && !userAccessAllowed) {
-        userAccessAllowed = true;
-        return location;
-      } else if (userIsSignedIn && userAccessAllowed) {
-        return previousLocation;
-      }
-    },
     routes: [
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -158,21 +125,36 @@ GoRouter router(BuildContext mainContext) {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  late final goRouter = router(context);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
+    return BlocListener<AuthStateRouter, MainPages>(
+      listener: (context, state) {
+        goRouter.go(state.name);
+      },
+      child: MaterialApp.router(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            },
+          ),
         ),
+        routerConfig: goRouter,
       ),
-      routerConfig: router(context),
     );
   }
 }
